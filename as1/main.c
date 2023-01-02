@@ -1,13 +1,3 @@
-/*
- ============================================================================
- Name        : 2020-assignment-buddies.c
- Author      : PT
- Version     :
- Copyright   : For personal use only. Please do not redistribute
- Description : Template for semaphore assignment summer 2020
- ============================================================================
- */
-
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdio.h>

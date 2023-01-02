@@ -60,8 +60,8 @@ monitor_t mon;
 boolean time_up = FALSE;
 
 //  MONITOR API
-void upload(monitor_t *mon, char *name, int value, lowhigh_t p);
-int download(monitor_t *mon, char *name, lowhigh_t t);
+void monitor_upload(monitor_t *mon, char *name, int value, lowhigh_t p);
+int monitor_download(monitor_t *mon, char *name, lowhigh_t t);
 void monitor_init(monitor_t *mon);
 void monitor_destroy(monitor_t *mon);
 
@@ -78,7 +78,7 @@ int copy_from_buffer(monitor_t *mon, lowhigh_t t);
 lowhigh_t f(int value);
 
 // IMPLEMENTATION OF MONITOR API
-void upload(monitor_t *mon, char *name, int value, lowhigh_t p) {
+void monitor_upload(monitor_t *mon, char *name, int value, lowhigh_t p) {
     pthread_mutex_lock(&mon->m);
 
     // if the buffer is full we have to wait
@@ -98,14 +98,21 @@ void upload(monitor_t *mon, char *name, int value, lowhigh_t p) {
 
     // lastly, we need to signal to any thread waiting to download an item of this priority
     // that we placed a new one into the buffer
-    if (mon->suspended_has_item[p] > 0) {
-        pthread_cond_signal(&mon->has_item[p]);
+    if (p == LOW) {
+        if (mon->suspended_has_item[LOW] > 0)
+            pthread_cond_signal(&mon->has_item[LOW]);
+    } else {
+        if (mon->suspended_has_item[LOW] > 0) {
+            pthread_cond_signal(&mon->has_item[LOW]);
+        } else if (mon->suspended_has_item[HIGH] > 0) {
+            pthread_cond_signal(&mon->has_item[HIGH]);
+        }
     }
 
     pthread_mutex_unlock(&mon->m);
 }
 
-int download(monitor_t *mon, char *name, lowhigh_t p) {
+int monitor_download(monitor_t *mon, char *name, lowhigh_t p) {
     int retval;
     pthread_mutex_lock(&mon->m);
 
