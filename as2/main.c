@@ -1,14 +1,3 @@
-/*
- ============================================================================
- Name        : 2020-assignment-buffer-template.c
- Author      : Paolo Torroni
- Version     :
- Copyright   : For personal use only. Please do not redistribute
- Description : Template for the implementation of a monitor and its animation
-                using fictitious thread activities
- ============================================================================
- */
-
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -222,7 +211,7 @@ void *producer(void *arg) {
         p = f(value);
         if (!time_up) {
             printf("producer %s: uploading value %d (%s)\n", name, value, p == LOW ? "LOW" : "HIGH");
-            upload(&mon, name, value, p);
+            monitor_upload(&mon, name, value, p);
             printf("producer %s: value %d (%s) uploaded\n", name, value, p == LOW ? "LOW" : "HIGH");
         }
     }
@@ -236,7 +225,7 @@ void *consumer(void *arg) {
     threshold = rand() % 2;
     printf("I am consumer %s (%s)\n", name, threshold == LOW ? "LOW" : "HIGH");
     FOREVER {
-        value = download(&mon, name, threshold);
+        value = monitor_download(&mon, name, threshold);
         printf("consumer %s: downloaded value %d (%s)\n", name, value, threshold == LOW ? "LOW" : "HIGH");
         consume(name, value);
     }
