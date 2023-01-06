@@ -13,8 +13,8 @@
 
 /* the following values are just examples of the possible duration
  * of each action and of the simulation: feel free to change them */
-#define REFILL_TIME 1
-#define MINGLE_TIME 5
+#define REFILL_TIME 5
+#define MINGLE_TIME 12
 #define END_OF_TIME 120
 
 typedef char name_t[20];
@@ -29,7 +29,7 @@ typedef struct {
 time_t big_bang;
 boolean time_up = FALSE;
 
-int missing_to_toast = GROUP_SIZE;
+int ready_to_toast = 0;
 pthread_mutex_t mutex1;
 
 int ready_to_drink = 0;
@@ -49,20 +49,20 @@ int cmpfunc(const void *a, const void *b) {
 void wait_for_toasting(char *thread_name) {
     sem_wait(&waiting_to_toast);
     pthread_mutex_lock(&mutex1);
-    missing_to_toast--;
-    if (missing_to_toast > 0) {
+    ready_to_toast++;
+    if (ready_to_toast < GROUP_SIZE) {
         pthread_mutex_unlock(&mutex1);
         sem_post(&waiting_to_toast);
         sem_wait(&can_toast);
 
         pthread_mutex_lock(&mutex1);
-        missing_to_toast++;
-        if (missing_to_toast < GROUP_SIZE) {
+        ready_to_toast--;
+        if (ready_to_toast > 0) {
             sem_post(&can_toast);
         }
         pthread_mutex_unlock(&mutex1);
     } else {
-        missing_to_toast++;
+        ready_to_toast--;
         pthread_mutex_unlock(&mutex1);
         sem_post(&can_toast);
     }
@@ -168,8 +168,7 @@ int main(void) {
 
     sleep(END_OF_TIME);
     time_up = TRUE;
-    // TODO: is this the correct way to unlock all waiting threads?
-    missing_to_toast = 0;
+    ready_to_toast = N_THREADS;
     for (i = 0; i < N_THREADS; i++) {
         sem_post(&waiting_to_toast);
     }
